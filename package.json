@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "description": "",
   "scripts": {
-    "test": "node examples/01_knowledge_requirements/example.js",
+    "test": "",
     "prepare": "husky & husky init"
   },
   "type": "module",

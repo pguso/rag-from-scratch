@@ -11,7 +11,6 @@ This example teaches you how to scale from 10 documents (01_text_similarity_basi
 ## Core Functions
 
 ### 1. Initialize Embedding Model
-
 ```javascript
 async function initializeEmbeddingModel() {
     const llama = await getLlama({
@@ -31,7 +30,6 @@ async function initializeEmbeddingModel() {
 ---
 
 ### 2. Generate Embeddings with Progress
-
 ```javascript
 async function generateEmbeddings(context, documents, onProgress = null) {
     const embeddings = [];
@@ -69,7 +67,6 @@ async function generateEmbeddings(context, documents, onProgress = null) {
 ---
 
 ### 3. Save Embeddings (JSON)
-
 ```javascript
 async function saveEmbeddingsJSON(embeddings, filename) {
     await fs.mkdir(STORAGE_DIR, {recursive: true});
@@ -107,7 +104,6 @@ async function saveEmbeddingsJSON(embeddings, filename) {
 ---
 
 ### 4. Load Embeddings
-
 ```javascript
 async function loadExistingEmbeddings(filename) {
     try {
@@ -132,7 +128,6 @@ async function loadExistingEmbeddings(filename) {
 ---
 
 ### 5. Incremental Updates
-
 ```javascript
 async function incrementalEmbedding(context, newDocuments, existingFilename) {
     const existingMap = await loadExistingEmbeddings(existingFilename);
@@ -318,7 +313,7 @@ Skipped (already embedded): 5
 **The Pipeline:**
 ```
 1. Load PDF
-   ↓ extractTextFromPDF()
+   ↓ PDFLoader
    [22 pages of text]
 
 2. Split into chunks
@@ -336,7 +331,8 @@ Skipped (already embedded): 5
 
 **Code:**
 ```javascript
-const docs = await extractTextFromPDF(pdfUrl, {splitPages: true});
+const loader = new PDFLoader(pdfUrl, {splitPages: true});
+const docs = await loader.load();
 const splitter = new RecursiveCharacterTextSplitter({chunkSize: 500, chunkOverlap: 50});
 const chunks = await splitter.splitDocuments(docs);
 const embeddings = await generateEmbeddings(context, chunks.slice(0, 20));
@@ -348,7 +344,6 @@ await saveEmbeddingsJSON(embeddings, 'pdf_embeddings.json');
 ## Key Patterns
 
 ### Pattern 1: Check Before Generate
-
 ```javascript
 // Smart caching pattern
 let embeddings;
@@ -363,7 +358,6 @@ try {
 ```
 
 ### Pattern 2: Progress Tracking
-
 ```javascript
 await generateEmbeddings(context, documents, (current, total) => {
     process.stdout.write(`\rProgress: ${current}/${total}`);
@@ -372,7 +366,6 @@ console.log(); // New line after progress
 ```
 
 ### Pattern 3: Metadata Enrichment
-
 ```javascript
 // Add metadata during embedding generation
 embeddings.push({
@@ -410,14 +403,12 @@ From the examples:
 ## Common Mistakes to Avoid
 
 ### ❌ Re-embedding everything
-
 ```javascript
 // BAD: Regenerate all embeddings every time
 const embeddings = await generateEmbeddings(context, allDocuments);
 ```
 
 ### ✅ Use caching
-
 ```javascript
 // GOOD: Load if available, generate if needed
 const embeddings = await loadEmbeddingsJSON('cache.json')
@@ -425,14 +416,12 @@ const embeddings = await loadEmbeddingsJSON('cache.json')
 ```
 
 ### ❌ Not tracking document IDs
-
 ```javascript
 // BAD: No way to know what's embedded
 embeddings.push({ embedding: [...] });
 ```
 
 ### ✅ Always include identifiers
-
 ```javascript
 // GOOD: Track source and content
 embeddings.push({
@@ -443,14 +432,12 @@ embeddings.push({
 ```
 
 ### ❌ Forgetting metadata
-
 ```javascript
 // BAD: Just the vector
 { embedding: [...] }
 ```
 
 ### ✅ Include context
-
 ```javascript
 // GOOD: Vector + metadata for retrieval
 {
@@ -462,4 +449,3 @@ embeddings.push({
     }
 }
 ```
-

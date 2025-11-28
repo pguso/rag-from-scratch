@@ -27,11 +27,7 @@ export class BaseLLM {
      * Batch process multiple prompts
      */
     async batch(prompts, options) {
-        const results = [];
-        for (const prompt of prompts) {
-            results.push(await this.invoke(prompt, options));
-        }
-        return results;
+        return Promise.all(prompts.map(p => this.invoke(p)));
     }
 
     /**
@@ -39,5 +35,10 @@ export class BaseLLM {
      */
     getModelType() {
         throw new Error("getModelType() must be implemented by subclass");
+    }
+
+    // Optional - subclasses can override if needed
+    async dispose() {
+        // Default: no-op
     }
 }

@@ -25,16 +25,16 @@ Retrieval-Augmented Generation (RAG) enhances language models by giving them acc
 Instead of asking the model to “remember” everything, you let it **retrieve relevant context** before generating a response.
 
 **Pipeline:**
-1. **Knowledge Requirements** — define questions and data needs.
-2. **Data Loading** — import and structure your documents.
-3. **Text Splitting & Chunking** — divide data into manageable pieces.
-4. **Embedding** — turn chunks into numerical vectors.
-5. **Vector Store** — save and index embeddings for fast retrieval.
-6. **Retrieval** — fetch the most relevant context for a given query.
-7. **Post-Retrieval Re-Ranking** — re-order results to prioritize the best context.
-8. **Query Preprocessing & Embedding Normalization** — clean and standardize input vectors for consistency.
-9. **Augmentation** — merge retrieved context into the model’s prompt.
-10. **Generation** — produce grounded answers using a local LLM.
+1. **Knowledge Requirements**, define questions and data needs.
+2. **Data Loading**, import and structure your documents.
+3. **Text Splitting & Chunking**, divide data into manageable pieces.
+4. **Embedding**, turn chunks into numerical vectors.
+5. **Vector Store**, save and index embeddings for fast retrieval.
+6. **Retrieval**, fetch the most relevant context for a given query.
+7. **Post-Retrieval Re-Ranking**, re-order results to prioritize the best context.
+8. **Query Preprocessing & Embedding Normalization**, clean and standardize input vectors for consistency.
+9. **Augmentation**, merge retrieved context into the model’s prompt.
+10. **Generation**, produce grounded answers using a local LLM.
 
 ---
 
@@ -175,15 +175,14 @@ Instead of asking the model to “remember” everything, you let it **retrieve 
 ---
 
 ### How it works
-| Goal                                | What You Add                                           | Why It Helps                                                                |
-| ----------------------------------- | ------------------------------------------------------ | --------------------------------------------------------------------------- |
-| **Concept clarity**                 | `00_how_rag_works`                                    | See retrieval + generation in <20 lines before touching vectors.           |
-| **Mathematical intuition**          | `05_intro_to_embeddings/01_text_similarity_basics.js`  | Learn cosine similarity without black-box APIs.                            |
-| **Hands-on understanding**          | `06_building_vector_store/01_in_memory_store.js`       | Understand how embeddings are stored and compared.                         |
-| **Pipeline thinking**               | `07_retrieval_pipeline`                                | Each stage is modular, testable, and easy to reason about.                 |
-| **Better results**                  | `07_retrieval_pipeline/04_post_retrieval_reranking.js` | Reduce noise and redundancy in retrieved context.                          |
-| **Query quality**                   | `07_retrieval_pipeline/05_query_preprocessing.js`      | Ensure embeddings represent consistent meaning.                            |
-| **Knowledge connectivity**          | `11_graph_db_integration/example.js`                   | Explore how a graph database can improve retrieval and reasoning.          |
+| Goal                                | What You Add                                           | Why It Helps                                                      |
+| ----------------------------------- |--------------------------------------------------------|-------------------------------------------------------------------|
+| **Concept clarity**                 | `00_how_rag_works`                                     | See retrieval + generation in <70 lines before touching vectors.  |
+| **Mathematical intuition**          | `04_intro_to_embeddings/01_text_similarity_basics.js`  | Learn cosine similarity without black-box APIs.                   |
+| **Hands-on understanding**          | `05_building_vector_store/01_in_memory_store.js`       | Understand how embeddings are stored and compared.                |
+| **Better results**                  | `06_retrieval_strategies/07_post_retrieval_reranking.js` | Reduce noise and redundancy in retrieved context.                 |
+| **Query quality**                   | `06_retrieval_strategies/02_query_preprocessing.js`      | Ensure embeddings represent consistent meaning.                   |
+| **Knowledge connectivity**          | `12_graph_db_integration/example.js`                   | Explore how a graph database can improve retrieval and reasoning. |
 
 Each folder contains:
 - A **minimal example** (`example.js`)
@@ -202,7 +201,7 @@ Install dependencies:
 
 ```bash
 npm install
-node 07_retrieval_pipeline/example.js
+node 00_how_rag_works/example.js
 ```
 
 ## Philosophy

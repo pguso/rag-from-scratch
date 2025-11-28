@@ -1,5 +1,5 @@
 /**
- * Building In-Memory Vector Store (Complete, Corrected)
+ * Building In-Memory Vector Store
  *
  * Demonstrates:
  * 1) Create an in-memory vector store
@@ -129,21 +129,28 @@ function createIdTracker() {
 const idTracker = createIdTracker();
 
 /**
+ * Simple document cache for retrieval by ID (since VectorDB doesn't have get())
+ */
+const documentCache = new Map();
+
+/**
  * Add documents to vector store
  */
 async function addDocumentsToStore(vectorStore, embeddingContext, documents) {
     for (const doc of documents) {
         const embedding = await embeddingContext.getEmbeddingFor(doc.pageContent);
+        const metadata = {
+            content: doc.pageContent,
+            ...doc.metadata,
+        };
         await vectorStore.insert(
             NS,
             doc.metadata.id,
             Array.from(embedding.vector),
-            {
-                content: doc.pageContent,
-                ...doc.metadata,
-            }
+            metadata
         );
         idTracker.add(doc.metadata.id);
+        documentCache.set(doc.metadata.id, { id: doc.metadata.id, metadata });
     }
 }
 
@@ -225,7 +232,7 @@ async function example2() {
         console.log("-".repeat(70));
 
         results.forEach((result, index) => {
-            console.log(`${chalk.bold(`${index + 1}.`)} [Score: ${chalk.green(result.score.toFixed(4))}]`);
+            console.log(`${chalk.bold(`${index + 1}.`)} [Score: ${chalk.green(result.similarity.toFixed(4))}]`);
             console.log(`   ${chalk.dim("ID:")} ${result.id}`);
             console.log(`   ${chalk.dim("Content:")} ${result.metadata.content.substring(0, 60)}...`);
             console.log(`   ${chalk.dim("Category:")} ${result.metadata.category}`);
@@ -259,7 +266,7 @@ async function example3() {
     console.log(`\n${chalk.bold('Without Filter (All Results):')}`);
     const allResults = await searchVectorStore(vectorStore, context, query, 5);
     allResults.forEach((r, i) => {
-        console.log(`${i + 1}. [${r.score.toFixed(4)}] ${r.metadata.category}: ${r.metadata.content.substring(0, 50)}...`);
+        console.log(`${i + 1}. [${r.similarity.toFixed(4)}] ${r.metadata.category}: ${r.metadata.content.substring(0, 50)}...`);
     });
 
     console.log(`\n${chalk.bold('With Filter (Only "programming" category):')}`);
@@ -268,7 +275,7 @@ async function example3() {
         .slice(0, 5);
 
     filteredResults.forEach((r, i) => {
-        console.log(`${i + 1}. [${r.score.toFixed(4)}] ${r.metadata.category}: ${r.metadata.content.substring(0, 50)}...`);
+        console.log(`${i + 1}. [${r.similarity.toFixed(4)}] ${r.metadata.category}: ${r.metadata.content.substring(0, 50)}...`);
     });
 
     console.log(`\n${chalk.bold("💡 Key Insight:")}`);
@@ -350,7 +357,7 @@ async function example5() {
     const idsToRetrieve = ["doc_1", "doc_5", "doc_10"];
 
     for (const id of idsToRetrieve) {
-        const doc = await vectorStore.get(NS, id);
+        const doc = documentCache.get(id);
         if (doc) {
             console.log(`${chalk.bold("ID:")} ${chalk.cyan(id)}`);
             console.log(`${chalk.dim("Content:")} ${doc.metadata.content}`);
@@ -385,6 +392,7 @@ async function example6() {
     console.log(`${chalk.bold("Deleting document:")} doc_2`);
     await vectorStore.delete(NS, "doc_2");
     idTracker.delete("doc_2");
+    documentCache.delete("doc_2");
     console.log(`${chalk.green("✓")} Deleted`);
     console.log(`IDs (tracked): ${idTracker.count()}\n`);
 
@@ -398,11 +406,13 @@ async function example6() {
 
     {
         const embedding = await context.getEmbeddingFor(newDoc.pageContent);
-        await vectorStore.insert(NS, newDoc.metadata.id, Array.from(embedding.vector), {
+        const metadata = {
             content: newDoc.pageContent,
             ...newDoc.metadata,
-        });
+        };
+        await vectorStore.insert(NS, newDoc.metadata.id, Array.from(embedding.vector), metadata);
         idTracker.add(newDoc.metadata.id);
+        documentCache.set(newDoc.metadata.id, { id: newDoc.metadata.id, metadata });
     }
     console.log(`${chalk.green("✓")} Added`);
     console.log(`IDs (tracked): ${idTracker.count()}\n`);
@@ -422,15 +432,17 @@ async function example6() {
 
     {
         const updatedEmbedding = await context.getEmbeddingFor(updatedDoc.pageContent);
-        await vectorStore.update(NS, updatedDoc.metadata.id, Array.from(updatedEmbedding.vector), {
+        const metadata = {
             content: updatedDoc.pageContent,
             ...updatedDoc.metadata,
-        });
+        };
+        await vectorStore.update(NS, updatedDoc.metadata.id, Array.from(updatedEmbedding.vector), metadata);
+        documentCache.set(updatedDoc.metadata.id, { id: updatedDoc.metadata.id, metadata });
     }
     console.log(`${chalk.green("✓")} Updated`);
 
     // Verify changes
-    const doc1 = await vectorStore.get(NS, "doc_1");
+    const doc1 = documentCache.get("doc_1");
     console.log(`${chalk.bold("Updated document content:")}`);
     console.log(`${doc1.metadata.content}\n`);
 
@@ -466,7 +478,7 @@ async function example7() {
         const results = await searchVectorStore(vectorStore, context, tc.query, 5);
 
         results.forEach((result, index) => {
-            const score = Math.max(0, Math.min(1, result.score)); // clamp safety
+            const score = Math.max(0, Math.min(1, result.similarity)); // clamp safety
             const scoreBar = "█".repeat(Math.round(score * 30));
             const color =
                 score > 0.6 ? chalk.green :
@@ -496,7 +508,7 @@ async function runAllExamples() {
     console.log("=".repeat(80) + "\n");
 
     console.log(chalk.dim("Prerequisites:"));
-    console.log(chalk.dim("• Completed 02_generate_embeddings"));
+    console.log(chalk.dim("• Completed 04_intro_to_embeddings"));
     console.log(chalk.dim("• npm install embedded-vector-db"));
     console.log(chalk.dim("• Model: bge-small-en-v1.5.Q8_0.gguf in models directory\n"));
 
@@ -532,7 +544,6 @@ async function runAllExamples() {
         console.log(chalk.bold("Next Steps:"));
         console.log("• 02_nearest_neighbor_search: Advanced search algorithms");
         console.log("• 03_metadata_filtering: Complex filtering strategies");
-        console.log("• Persistent stores: LanceDB, Qdrant, Chroma\n");
 
     } catch (error) {
         console.error(chalk.red("\n❌ Error:"), error?.message ?? error);
@@ -541,6 +552,8 @@ async function runAllExamples() {
         console.error(chalk.dim("2. Completed previous examples"));
         console.error(chalk.dim("3. Model file in correct location\n"));
     }
+
+    process.exit(0);
 }
 
 runAllExamples();

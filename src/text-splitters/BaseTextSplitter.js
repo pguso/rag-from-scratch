@@ -15,7 +15,7 @@ export class BaseTextSplitter {
     }
 
     /**
-     * Splits a single text string — must be implemented by subclasses.
+     * Splits a single text string, must be implemented by subclasses.
      */
     splitText() {
         throw new Error('splitText() must be implemented by subclass');

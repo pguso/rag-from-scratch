@@ -181,7 +181,7 @@ Embeddings alone aren't enough. You need to know:
 
 ```
 ┌─────────────────────────────────────────────────────────┐
-│              RAG PIPELINE                                │
+│              RAG PIPELINE                               │
 └─────────────────────────────────────────────────────────┘
 
 INDEXING (One-time or periodic)
